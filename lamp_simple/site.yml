@@ -1,23 +1,23 @@
 ---
 # This playbook deploys the whole application stack in this site.
 
-- name: apply common configuration to all nodes
+- name: Aplicar configuración comúnes a todos los nodos.
   hosts: all
-  remote_user: root
+  become: yes
 
   roles:
     - common
 
-- name: configure and deploy the webservers and application code
+- name: Instalar/configurar el servidor web y la aplicación.
   hosts: webservers
-  remote_user: root
+  become: yes
 
   roles:
     - web
 
-- name: deploy MySQL and configure the databases
+- name: Instalar/configurar el motor de BBDD.
   hosts: dbservers
-  remote_user: root
+  become: yes
 
   roles:
     - db
