@@ -1,0 +1,15 @@
+---
+packages_rh:
+   - httpd
+   - php
+   - php-mysqlnd
+   - git
+   - python3-libsemanage
+
+packages_db:
+   - apache2
+   - php
+   - php-mysqlnd
+   - git
+
+repository: https://github.com/bennojoy/mywebapp.git

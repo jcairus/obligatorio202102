@@ -1,0 +1,55 @@
+---
+# This playbook contains common plays that will be run on all nodes.
+
+- name: Instala ntp en servidores RedHat.
+  yum:
+    name: chrony.x86_64 
+    state: latest
+  when: ansible_os_family == "RedHat"
+  tags: ntp
+
+- name: Instala ntp en servidores Debian.
+  apt:
+    name: ntp
+    state: latest
+  when: ansible_os_family == "Debian"
+  tags: ntp
+
+- name: Configura ntp en servidores RedHat.
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  when: ansible_os_family == "RedHat"
+  tags: ntp
+  notify: restart ntp_rh
+
+- name: Configura ntp en servidores Debian.
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  when: ansible_os_family == "Debian"
+  tags: ntp
+  notify: restart ntp_db
+
+- name: Inicia ntp en servidores RefHat.
+  service:
+    name: chronyd 
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+  tags: ntp
+
+- name: Inicia ntp en servidores Debian.
+  service:
+    name: ntp.service
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+  tags: ntp
+
+- name: Colocar SELinux en modo enforcing en servidores RedHat.
+  selinux:
+    policy: targeted
+    state: enforcing
+  when: ansible_os_family == "RedHat" 
+

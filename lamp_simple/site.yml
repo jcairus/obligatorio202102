@@ -1,0 +1,23 @@
+---
+# This playbook deploys the whole application stack in this site.
+
+- name: Configuración común a todos los nodos.
+  hosts: all
+  become: yes
+
+  roles:
+    - common
+
+- name: Configurar e instalar el webserver y la aplicación.
+  hosts: webservers
+  become: yes
+
+  roles:
+    - web
+
+- name: Instalar y configurar MariaDB y las BBDD.
+  hosts: dbservers
+  become: yes
+
+  roles:
+    - db

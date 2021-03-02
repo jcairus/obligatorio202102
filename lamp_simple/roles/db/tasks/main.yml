@@ -1,0 +1,70 @@
+---
+# This playbook will install mysql and create db user and give permissions.
+
+- name: Instala MariaDB en servidores RedHat.
+  yum:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ mariadb_packages_rh }}"
+  when: ansible_os_family == "RedHat"
+
+- name: Instala MariaDB en servidores Debian.
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ mariadb_packages_db }}"
+  when: ansible_os_family == "Debian"
+
+- name: Valida y guarda el valor de estado de SELinux en servidores RedHat.
+  command: getenforce
+  register: sestatus
+  when: ansible_os_family == "RedHat"
+
+- name: Configura SELinux en RedHat a iniciar MariaDB en cualquier puerto.
+  seboolean:
+    name: mysql_connect_any
+    state: true
+    persistent: yes
+  when: sestatus != "Permissive" and ansible_os_family == "RedHat" 
+
+- name: Copia confiuración de MariaDB desde un template.
+  template:
+    src: my.cnf.j2
+    dest: /etc/my.cnf
+  notify: restart mariadb
+
+- name: Inicia el servicio MariaDB.
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Abre el puerto 3306 en servidores RedHat.
+  firewalld:
+    port: 3306/tcp 
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+  notify: restart firewalld
+
+- name: Abre el puerto 3306 en servidores Debian.
+  ufw:
+    rule: allow
+    port: "3306"
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Se crea la BBDD de la aplicacion.
+  mysql_db:
+    name: "{{ mariadb_dbname }}"
+    state: present
+
+- name: Se crea el usuario de la BBDD de la aplicacion.
+  mysql_user:
+    name: "{{ mariadb_dbuser }}"
+    password: "{{ mariadb_upassword }}"
+    priv: "*.*:ALL"
+    host: '%'
+    state: present
+  no_log: true

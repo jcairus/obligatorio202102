@@ -1,0 +1,12 @@
+
+driftfile {{ ntp_driftfile }}
+
+restrict {{ ntp_restrict_1 }}
+restrict {{ ntp_restrict_2 }}
+
+server {{ ntpserver }}
+
+includefile {{ ntp_includefile }}
+
+keys {{ ntp_keys }}
+

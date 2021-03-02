@@ -1,0 +1,20 @@
+---
+# These tasks are responsible for copying the latest dev/production code from
+# the version control system.
+
+- name: Se vacía el contenido de /html en el webserver.
+  file:
+    path: /var/www/html
+    state: absent
+
+- name: Se copia el código de la app desde un repositorio en internet.
+  git:
+    repo: "{{ repository }}"
+    dest: /var/www/html/
+    force: yes
+    update: yes
+
+- name: Se crea el archivo index.php por defecto.
+  template:
+    src: index.php.j2
+    dest: /var/www/html/index.php

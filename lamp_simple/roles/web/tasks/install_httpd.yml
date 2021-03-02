@@ -1,0 +1,71 @@
+---
+# These tasks install http and the php modules.
+
+- name: Instala httpd y php, etc en servidores RedHat.
+  yum:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ packages_rh }}"
+  when: ansible_os_family == "RedHat"
+
+- name: Instala httpd y php, etc en servidores Debian.
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ packages_db }}"
+  when: ansible_os_family == "Debian"
+
+- name: Verifica apache esté corriendo en servidore RedHat.
+  service:
+    name: httpd
+    state: started
+  when: ansible_os_family == "RedHat"
+
+- name: Verifica apache esté corriendo en servidore Debian.
+  service:
+    name: apache2.service
+    state: started
+  when: ansible_os_family == "Debian"
+
+
+- name: Abre el puerto 80 en el firewall de RedHat.
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+  notify: restart firewalld
+
+- name: Abre el puerto 80 en el firewall de Debian.
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Valida el servicio de apache esté iniciado en RedHat.
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Valida el servicio de apache esté iniciado en Debian.
+  service:
+    name: apache2.service
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
+- name: Verifico y cargo el estado de SELinux en servidores RedHat.
+  command: getenforce
+  register: sestatus
+  when: ansible_os_family == "RedHat"
+
+- name: Configuro SELinux para permitirle a httpd conectarse a la BBDD en servidores RedHat.
+  seboolean:
+    name: httpd_can_network_connect_db
+    state: true
+    persistent: yes
+  when: sestatus != "Permissive" and ansible_os_family == "RedHat"
